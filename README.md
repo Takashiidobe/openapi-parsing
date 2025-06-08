@@ -29,5 +29,3 @@ It should also be possible to generate the YAML spec files if needed.
 - Return type of the 200 response -> mapped to Go code (*ListResponse)
 - Then generate the resource name from the *ListResponse
 
-- Also must generate intermediate ChannelSteps + ResourceSteps +
-  PayloadSteps.

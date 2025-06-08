@@ -58,9 +58,9 @@ fn expr_to_string(expr: &Expression) -> String {
     }
 }
 
-pub fn parse() -> Result<HashMap<String, Vec<MethodInfo>>> {
+pub fn parse(path: &str) -> Result<HashMap<String, Vec<MethodInfo>>> {
     // 1) Parse the directory into a map: package_path → Package
-    let pkgs = parse_dir("../azure-rest-api-specs/_code-models/storage-2024-01-01/go_code/")?; // :contentReference[oaicite:0]{index=0}
+    let pkgs = parse_dir(path)?; // :contentReference[oaicite:0]{index=0}
 
     // 2) Pick the first (and typically only) package
     let (_pkg_path, pkg) = pkgs
