@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.98"
+gosyn = "0.2.9"
 oas3 = "0.16.1"
-serde_json = "1.0.140"
