@@ -13,6 +13,8 @@ pub struct Parser {
 pub struct Op {
     path: String,
     params: Vec<(String, SchemaTypeSet)>,
+    client: String,
+    method: String,
     response_type: String,
 }
 
@@ -68,6 +70,10 @@ impl Parser {
 
                 // resolve all useful params
                 let operation = v.get.unwrap().clone();
+                let operation_id = operation.operation_id.clone().expect("No operation id");
+                let split: Vec<_> = operation_id.split('_').collect();
+                let client = format!("{}Client", split[0]);
+                let method = format!("New{}Pager", split[1]);
                 let params = operation
                     .parameters(&self.spec)
                     .unwrap()
@@ -106,6 +112,8 @@ impl Parser {
                     .to_owned();
 
                 let op = Op {
+                    client,
+                    method,
                     path,
                     params,
                     response_type,
