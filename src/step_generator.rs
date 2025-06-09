@@ -53,7 +53,9 @@ pub fn op_channel_step(op: &Op) -> Step {
     Step::Channel(ChannelStep {
         id: op.response_type.to_string(),
         client_method: ClientMethod {
-            package: "armcosmos/v3".to_string(),
+            // github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/v3 (version
+            // number comes somewhere)
+            package: format!("github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/{}/arm{}/{}", op.path, op.path, "v3"),
             // however, client needs to come from the go specs
             client: op.client.to_string(),
             method: op.method.to_string(),

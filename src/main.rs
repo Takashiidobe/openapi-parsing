@@ -23,9 +23,7 @@ fn main() {
 
     dbg!(generate_steps(&ex));
 
-    // let api_version = "2024-08-15";
-    // let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default";
-    // spec_finder(api_version, target).unwrap();
-    // now that we have dependencies, I want to generate a StepTree for each op.
-    // So Vec<Op> -> StepTree + Vec<Step>
+    let api_version = "2024-08-15";
+    let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default";
+    dbg!(spec_finder(api_version, target).unwrap());
 }
