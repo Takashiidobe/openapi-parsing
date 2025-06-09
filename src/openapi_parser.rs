@@ -1,5 +1,5 @@
 #[allow(unused)]
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::{cmp::Ordering, collections::HashSet};
 
 use oas3::{Spec, spec::SchemaTypeSet};
@@ -71,10 +71,24 @@ impl Parser {
                 // resolve all useful params
                 let operation = v.get.unwrap().clone();
                 let operation_id = operation.operation_id.clone().expect("No operation id");
+
                 let split: Vec<_> = operation_id.split('_').collect();
-                let client = format!("{}Client", split[0]);
+
+                // find the resource provider
+                let split_path: Vec<_> = path.split("/").collect();
+
+                let resource_provider = split_path
+                    .iter()
+                    .find(|s| s.starts_with("Microsoft."))
+                    .expect("No Microsoft.* entry found")
+                    .strip_prefix("Microsoft.")
+                    .expect("Entry did not start with Microsoft.");
+
+                let mut client = format!("{}Client", split[0]);
+                client = client.strip_prefix(resource_provider).unwrap_or(&client).to_string();
+
                 let method = format!("New{}Pager", split[1]);
-                let params = operation
+                let mut params: Vec<_> = operation
                     .parameters(&self.spec)
                     .unwrap()
                     .into_iter()
@@ -90,6 +104,16 @@ impl Parser {
                         )
                     })
                     .collect();
+
+                let param_sort_key: Vec<String> = path
+                    .split('/')
+                    .filter(|s| s.starts_with('{') && s.ends_with('}'))
+                    .map(|s| s.trim_start_matches('{').trim_end_matches('}').to_string())
+                    .collect();
+
+                let index_map: HashMap<_, _> = param_sort_key.iter().enumerate().map(|(i, c)| (c, i)).collect();
+
+                params.sort_by_key(|c| index_map.get(&c.0).copied().unwrap_or(param_sort_key.len()));
 
                 let response = operation
                     .responses(&self.spec)
