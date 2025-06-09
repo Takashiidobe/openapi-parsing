@@ -45,6 +45,7 @@ pub fn op_channel_step(op: &Op) -> Step {
     let mut args = vec![];
     for param in &op.params {
         match param.0.as_str() {
+            // ignore API version
             "api-version" => {}
             _ => args.push(param.0.clone()),
         }

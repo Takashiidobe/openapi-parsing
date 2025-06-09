@@ -10,7 +10,8 @@ use openapi_parsing::go_parser::parse;
 pub fn dependency_example(parser: Parser) -> Vec<Op> {
     let paths = parser.paths();
 
-    let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts";
+    let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/listKeys";
+    // let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts";
 
     find_dependencies(&paths, target)
 }
