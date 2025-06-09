@@ -36,10 +36,7 @@ fn find_json_spec(api_ver: &str, target: &str) -> io::Result<Vec<PathBuf>> {
     Ok(matches)
 }
 
-pub fn spec_finder(api_version: &str, target: &str) -> io::Result<()> {
+pub fn spec_finder(api_version: &str, target: &str) -> io::Result<Vec<PathBuf>> {
     let specs = find_json_spec(api_version, target)?;
-    for spec in specs {
-        println!("{}", spec.display());
-    }
-    Ok(())
+    Ok(specs)
 }

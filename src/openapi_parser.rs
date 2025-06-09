@@ -15,6 +15,7 @@ pub struct Op {
     pub params: Vec<(String, SchemaTypeSet)>,
     pub client: String,
     pub method: String,
+    pub resource_provider: String,
     pub response_type: String,
 }
 
@@ -82,10 +83,14 @@ impl Parser {
                     .find(|s| s.starts_with("Microsoft."))
                     .expect("No Microsoft.* entry found")
                     .strip_prefix("Microsoft.")
-                    .expect("Entry did not start with Microsoft.");
+                    .expect("Entry did not start with Microsoft.")
+                    .to_string();
 
                 let mut client = format!("{}Client", split[0]);
-                client = client.strip_prefix(resource_provider).unwrap_or(&client).to_string();
+                client = client
+                    .strip_prefix(&resource_provider)
+                    .unwrap_or(&client)
+                    .to_string();
 
                 let method = format!("New{}Pager", split[1]);
                 let mut params: Vec<_> = operation
@@ -111,9 +116,14 @@ impl Parser {
                     .map(|s| s.trim_start_matches('{').trim_end_matches('}').to_string())
                     .collect();
 
-                let index_map: HashMap<_, _> = param_sort_key.iter().enumerate().map(|(i, c)| (c, i)).collect();
+                let index_map: HashMap<_, _> = param_sort_key
+                    .iter()
+                    .enumerate()
+                    .map(|(i, c)| (c, i))
+                    .collect();
 
-                params.sort_by_key(|c| index_map.get(&c.0).copied().unwrap_or(param_sort_key.len()));
+                params
+                    .sort_by_key(|c| index_map.get(&c.0).copied().unwrap_or(param_sort_key.len()));
 
                 let response = operation
                     .responses(&self.spec)
@@ -139,6 +149,7 @@ impl Parser {
                     client,
                     method,
                     path,
+                    resource_provider: resource_provider.to_ascii_lowercase(),
                     params,
                     response_type,
                 };

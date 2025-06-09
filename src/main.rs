@@ -5,8 +5,6 @@ use openapi_parsing::{
     step_generator::generate_steps,
 };
 
-use openapi_parsing::go_parser::parse;
-
 pub fn dependency_example(parser: Parser) -> Vec<Op> {
     let paths = parser.paths();
 
@@ -21,7 +19,10 @@ fn main() {
     // dbg!(parse("./go/storage/").unwrap());
     let ex = dependency_example(parser);
 
-    dbg!(generate_steps(&ex));
+    let root_step = generate_steps(&ex, "v3");
+
+    // create a function that takes an RootStep and generates a StepTree
+    let step_tree = step_tree_from_root(root_step);
 
     let api_version = "2024-08-15";
     let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default";

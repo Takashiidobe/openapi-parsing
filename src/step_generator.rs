@@ -41,7 +41,7 @@ pub enum Step {
     Payload(PayloadStep),
 }
 
-pub fn op_channel_step(op: &Op) -> Step {
+pub fn op_channel_step(op: &Op, sdk_version: &str) -> Step {
     let mut args = vec![];
     for param in &op.params {
         match param.0.as_str() {
@@ -53,9 +53,10 @@ pub fn op_channel_step(op: &Op) -> Step {
     Step::Channel(ChannelStep {
         id: op.response_type.to_string(),
         client_method: ClientMethod {
-            // github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/v3 (version
-            // number comes somewhere)
-            package: format!("github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/{}/arm{}/{}", op.path, op.path, "v3"),
+            package: format!(
+                "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/{}/arm{}/{}",
+                op.resource_provider, op.resource_provider, sdk_version,
+            ),
             // however, client needs to come from the go specs
             client: op.client.to_string(),
             method: op.method.to_string(),
@@ -79,13 +80,13 @@ pub fn op_payload_step(op: &Op) -> Step {
     })
 }
 
-pub fn generate_steps(ops: &[Op]) -> Step {
+pub fn generate_steps(ops: &[Op], sdk_version: &str) -> Step {
     assert!(
         !ops.is_empty(),
         "must have at least one Op to generate steps"
     );
 
-    let mut root_channel = match op_channel_step(&ops[0]) {
+    let mut root_channel = match op_channel_step(&ops[0], sdk_version) {
         Step::Channel(c) => c,
         _ => unreachable!("op_channel_step always returns Step::Channel"),
     };
@@ -95,7 +96,7 @@ pub fn generate_steps(ops: &[Op]) -> Step {
     let mut current = &mut root_channel;
 
     for op in &ops[1..] {
-        let mut next_channel = match op_channel_step(op) {
+        let mut next_channel = match op_channel_step(op, sdk_version) {
             Step::Channel(c) => c,
             _ => unreachable!(),
         };
