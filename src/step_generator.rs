@@ -53,6 +53,7 @@ pub fn op_channel_step(op: &Op) -> Step {
         id: op.response_type.to_string(),
         client_method: ClientMethod {
             package: "armcosmos/v3".to_string(),
+            // however, client needs to come from the go specs
             client: op.client.to_string(),
             method: op.method.to_string(),
             args,

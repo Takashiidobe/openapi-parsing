@@ -71,8 +71,22 @@ impl Parser {
                 // resolve all useful params
                 let operation = v.get.unwrap().clone();
                 let operation_id = operation.operation_id.clone().expect("No operation id");
+
                 let split: Vec<_> = operation_id.split('_').collect();
-                let client = format!("{}Client", split[0]);
+
+                // find the resource provider
+                let split_path: Vec<_> = path.split("/").collect();
+
+                let resource_provider = split_path
+                    .iter()
+                    .find(|s| s.starts_with("Microsoft."))
+                    .expect("No Microsoft.* entry found")
+                    .strip_prefix("Microsoft.")
+                    .expect("Entry did not start with Microsoft.");
+
+                let mut client = format!("{}Client", split[0]);
+                client = client.strip_prefix(resource_provider).unwrap_or(&client).to_string();
+
                 let method = format!("New{}Pager", split[1]);
                 let params = operation
                     .parameters(&self.spec)
