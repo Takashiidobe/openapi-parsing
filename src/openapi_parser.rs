@@ -72,7 +72,6 @@ impl Parser {
                 let operation = v.get.unwrap().clone();
                 let operation_id = operation.operation_id.clone().expect("No operation id");
                 let split: Vec<_> = operation_id.split('_').collect();
-                let name = split[1].to_string();
                 let client = format!("{}Client", split[0]);
                 let method = format!("New{}Pager", split[1]);
                 let params = operation
