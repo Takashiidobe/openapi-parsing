@@ -1,21 +1,21 @@
-use std::cmp::Ordering;
 #[allow(unused)]
 use std::collections::BTreeMap;
+use std::{cmp::Ordering, collections::HashSet};
 
 use oas3::{Spec, spec::SchemaTypeSet};
 
 #[derive(Debug, Clone)]
 pub struct Parser {
-    spec: Spec,
+    pub spec: Spec,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Op {
-    path: String,
-    params: Vec<(String, SchemaTypeSet)>,
-    client: String,
-    method: String,
-    response_type: String,
+    pub path: String,
+    pub params: Vec<(String, SchemaTypeSet)>,
+    pub client: String,
+    pub method: String,
+    pub response_type: String,
 }
 
 impl Eq for Op {}
@@ -72,6 +72,7 @@ impl Parser {
                 let operation = v.get.unwrap().clone();
                 let operation_id = operation.operation_id.clone().expect("No operation id");
                 let split: Vec<_> = operation_id.split('_').collect();
+                let name = split[1].to_string();
                 let client = format!("{}Client", split[0]);
                 let method = format!("New{}Pager", split[1]);
                 let params = operation
@@ -126,4 +127,31 @@ impl Parser {
 
         res
     }
+}
+
+fn prefixes(path: &str) -> Vec<String> {
+    // trim leading slash so we don't get an empty first segment
+    let trimmed = path.trim_start_matches('/');
+    let mut acc = String::new();
+    let mut out = Vec::new();
+    for segment in trimmed.split('/') {
+        acc.push('/');
+        acc.push_str(segment);
+        out.push(acc.clone());
+    }
+    out
+}
+
+pub fn find_dependencies(ops: &[Op], target_path: &str) -> Vec<Op> {
+    // build a fast lookup of all valid prefixes
+    let prefix_set: HashSet<_> = prefixes(target_path).into_iter().collect();
+
+    // filter and then sort by path length so you get the roots first
+    let mut deps: Vec<&Op> = ops
+        .iter()
+        .filter(|op| prefix_set.contains(&op.path))
+        .collect();
+
+    deps.sort_by_key(|op| op.path.len());
+    deps.into_iter().cloned().collect()
 }
