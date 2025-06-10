@@ -5,7 +5,7 @@ use std::{
 };
 use walkdir::WalkDir;
 
-fn find_json_spec(api_ver: &str, target: &str) -> io::Result<Vec<PathBuf>> {
+fn find_json_spec(api_ver: &str, target: &str) -> io::Result<Vec<String>> {
     let version_segment = format!("/stable/{}/", api_ver);
     let mut matches = Vec::new();
 
@@ -29,14 +29,14 @@ fn find_json_spec(api_ver: &str, target: &str) -> io::Result<Vec<PathBuf>> {
             Ok(l) => l.contains(target),
             Err(_) => false,
         }) {
-            matches.push(path.to_path_buf());
+            matches.push(path.to_string_lossy().to_string());
         }
     }
 
     Ok(matches)
 }
 
-pub fn spec_finder(api_version: &str, target: &str) -> io::Result<Vec<PathBuf>> {
+pub fn spec_finder(api_version: &str, target: &str) -> io::Result<Vec<String>> {
     let specs = find_json_spec(api_version, target)?;
     Ok(specs)
 }

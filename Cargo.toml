@@ -8,3 +8,5 @@ anyhow = "1.0.98"
 gosyn = "0.2.9"
 oas3 = "0.16.1"
 walkdir = "2.5.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"

@@ -2,7 +2,7 @@
 use openapi_parsing::{
     find_rest_spec::spec_finder,
     openapi_parser::{Op, Parser, find_dependencies},
-    step_generator::generate_steps,
+    step_generator::{generate_steps, write_step_tree_and_steps_to_file},
 };
 
 pub fn dependency_example(parser: Parser) -> Vec<Op> {
@@ -21,8 +21,11 @@ fn main() {
 
     let root_step = generate_steps(&ex, "v3");
 
-    // create a function that takes an RootStep and generates a StepTree
-    let step_tree = step_tree_from_root(root_step);
+    // Write step tree and serialized steps to file
+    match write_step_tree_and_steps_to_file(root_step, "crawler_output.yaml") {
+        Ok(()) => println!("Successfully wrote step tree and steps to crawler_output.yaml"),
+        Err(e) => eprintln!("Error writing to file: {}", e),
+    }
 
     let api_version = "2024-08-15";
     let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default";

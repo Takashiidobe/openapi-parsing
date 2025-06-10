@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: StepTree
+id: StorageAccountCrawler
+executor:
+  default: {}
+rootStep:
+  id: StorageAccountListResult
+  children:
+  - id: StorageAccountListResult
+  - id: StorageAccountListResult
+  - id: StorageAccount
+    children:
+    - id: StorageAccount
+    - id: StorageAccount
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: StorageAccountListResult
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/v3
+  client: AccountsClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: StorageAccountListResult
+resource: azure_storage_account_list_result
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: StorageAccountListResult
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: StorageAccount
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/v3
+  client: AccountsClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: StorageAccount
+resource: azure_storage_account
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: StorageAccount
