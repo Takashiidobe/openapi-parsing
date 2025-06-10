@@ -24,7 +24,7 @@ clientMethod:
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
 id: StorageAccountListResult
-resource: azure_storage_account_list_result
+resource: azure_storage_account
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: PayloadStep

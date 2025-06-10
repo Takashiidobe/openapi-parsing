@@ -122,8 +122,15 @@ struct SerializedPayloadStep {
 
 // Helper function to convert camelCase to snake_case with azure_ prefix
 fn to_azure_resource_name(name: &str) -> String {
+    // Remove "ListResult" suffix if present to get singular resource name
+    let clean_name = if name.ends_with("ListResult") {
+        name.strip_suffix("ListResult").unwrap_or(name)
+    } else {
+        name
+    };
+    
     let mut result = String::from("azure_");
-    let mut chars = name.chars().peekable();
+    let mut chars = clean_name.chars().peekable();
     
     while let Some(ch) = chars.next() {
         if ch.is_uppercase() && !result.ends_with("azure_") {
