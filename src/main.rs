@@ -5,7 +5,6 @@ use openapi_parsing::{
     step_generator::{generate_steps, write_step_tree_and_steps_to_file},
 };
 use std::process::Command;
-use std::path::Path;
 use std::fs;
 
 pub fn dependency_example(parser: Parser, target: &str) -> Vec<Op> {
@@ -62,7 +61,7 @@ fn generate_json_and_go(spec_file: &str) -> Result<(), Box<dyn std::error::Error
     println!("Successfully generated JSON for {}", resource_provider);
     
     println!("Generating Go code for {} to {}", resource_provider, go_dir);
-    
+
     // Generate Go code
     let go_output = Command::new("autorest")
         .arg(format!("--input-file={}", spec_file))
@@ -86,32 +85,60 @@ fn generate_json_and_go(spec_file: &str) -> Result<(), Box<dyn std::error::Error
 
 fn main() {
     // let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts";
-    let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/listKeys";
 
-    let parser = Parser::new("./json/storage/openapi-document.json");
-    let ex = dependency_example(parser, target);
-    let package_version = "v3";
+    let targets = vec![
+        ("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/listKeys", "2024-01-01"),
+        ("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default", "2024-08-15"),
+    ];
 
-    let root_step = generate_steps(&ex, &package_version);
-
-    write_step_tree_and_steps_to_file(root_step, "crawler_output.yaml").unwrap();
-
-    let api_version = "2024-08-15";
-    let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default";
-    match spec_finder(api_version, target) {
-        Ok(specs) => {
-            if let Some(spec_file) = specs.first() {
-                println!("Found spec file: {}", spec_file);
-                
-                // Generate JSON and Go code from the found spec file
-                match generate_json_and_go(spec_file) {
-                    Ok(()) => println!("Successfully generated JSON and Go code"),
-                    Err(e) => eprintln!("Error generating code: {}", e),
+    for (target, api_version) in targets {
+        println!("\n--- Processing target: {} with API version: {} ---", target, api_version);
+        
+        // First, find the spec file for this target
+        match spec_finder(api_version, target) {
+            Ok(specs) => {
+                if let Some(spec_file) = specs.first() {
+                    println!("Found spec file: {}", spec_file);
+                    
+                    // Generate JSON and Go code from the found spec file
+                    match generate_json_and_go(spec_file) {
+                        Ok(()) => {
+                            println!("Successfully generated JSON and Go code");
+                            
+                            // Extract resource provider to determine the JSON file path
+                            let path_parts: Vec<&str> = spec_file.split('/').collect();
+                            if let Some(resource_provider) = path_parts.iter().find(|part| part.starts_with("Microsoft.")) {
+                                let folder_name = resource_provider_to_folder_name(resource_provider);
+                                let json_file_path = format!("./json/{}/openapi-document.json", folder_name);
+                                
+                                println!("Creating parser for: {}", json_file_path);
+                                
+                                // Create parser from the generated JSON file
+                                let parser = Parser::new(&json_file_path);
+                                let ex = dependency_example(parser, target);
+                                let package_version = "v3";
+                                
+                                let root_step = generate_steps(&ex, &package_version);
+                                
+                                // Create unique output filename based on resource provider
+                                let output_filename = format!("crawler_output_{}.yaml", folder_name);
+                                println!("Writing crawler steps to: {}", output_filename);
+                                
+                                match write_step_tree_and_steps_to_file(root_step, &output_filename) {
+                                    Ok(()) => println!("Successfully wrote crawler file: {}", output_filename),
+                                    Err(e) => eprintln!("Error writing crawler file {}: {}", output_filename, e),
+                                }
+                            } else {
+                                eprintln!("Could not extract resource provider from spec file path: {}", spec_file);
+                            }
+                        }
+                        Err(e) => eprintln!("Error generating code: {}", e),
+                    }
+                } else {
+                    println!("No spec files found for target: {} with API version: {}", target, api_version);
                 }
-            } else {
-                println!("No spec files found for the given criteria");
             }
+            Err(e) => eprintln!("Error finding spec for target {}: {}", target, e),
         }
-        Err(e) => eprintln!("Error finding spec: {}", e),
     }
 }

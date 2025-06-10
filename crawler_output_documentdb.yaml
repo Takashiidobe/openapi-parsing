@@ -1,0 +1,153 @@
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: StepTree
+id: DatabaseAccountsCrawler
+executor:
+  default: {}
+rootStep:
+  id: DatabaseAccountsListResult
+  children:
+  - id: DatabaseAccountsListResult
+  - id: DatabaseAccountsListResult
+  - id: DatabaseAccountGetResults
+    children:
+    - id: DatabaseAccountGetResults
+    - id: DatabaseAccountGetResults
+    - id: CassandraKeyspaceListResult
+      children:
+      - id: CassandraKeyspaceListResult
+      - id: CassandraKeyspaceListResult
+      - id: CassandraKeyspaceGetResults
+        children:
+        - id: CassandraKeyspaceGetResults
+        - id: CassandraKeyspaceGetResults
+        - id: CassandraTableListResult
+          children:
+          - id: CassandraTableListResult
+          - id: CassandraTableListResult
+          - id: CassandraTableGetResults
+            children:
+            - id: CassandraTableGetResults
+            - id: CassandraTableGetResults
+            - id: ThroughputSettingsGetResults
+              children:
+              - id: ThroughputSettingsGetResults
+              - id: ThroughputSettingsGetResults
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: DatabaseAccountsListResult
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: DatabaseAccountsClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: DatabaseAccountsListResult
+resource: azure_database_accounts
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: DatabaseAccountsListResult
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: DatabaseAccountGetResults
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: DatabaseAccountsClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: DatabaseAccountGetResults
+resource: azure_database_account_get_results
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: DatabaseAccountGetResults
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: CassandraKeyspaceListResult
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: CassandraResourcesClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: CassandraKeyspaceListResult
+resource: azure_cassandra_keyspace
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: CassandraKeyspaceListResult
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: CassandraKeyspaceGetResults
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: CassandraResourcesClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: CassandraKeyspaceGetResults
+resource: azure_cassandra_keyspace_get_results
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: CassandraKeyspaceGetResults
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: CassandraTableListResult
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: CassandraResourcesClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: CassandraTableListResult
+resource: azure_cassandra_table
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: CassandraTableListResult
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: CassandraTableGetResults
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: CassandraResourcesClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: CassandraTableGetResults
+resource: azure_cassandra_table_get_results
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: CassandraTableGetResults
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ChannelStep
+id: ThroughputSettingsGetResults
+clientMethod:
+  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+  client: CassandraResourcesClient
+  method: Get
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: ResourceStep
+id: ThroughputSettingsGetResults
+resource: azure_throughput_settings_get_results
+---
+# yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
+kind: PayloadStep
+id: ThroughputSettingsGetResults
