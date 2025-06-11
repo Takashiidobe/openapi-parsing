@@ -154,7 +154,7 @@ fn serialize_step_recursive(step: &Step) -> Vec<String> {
                 client_method: SerializedClientMethod {
                     package: channel.client_method.package.clone(),
                     client: channel.client_method.client.clone(),
-                    method: "Get".to_string(),
+                    method: channel.client_method.method.clone(),
                 },
             };
             

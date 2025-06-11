@@ -22,6 +22,46 @@ fn resource_provider_to_folder_name(resource_provider: &str) -> String {
         .to_lowercase()
 }
 
+/// Determine the SDK version based on the resource provider
+/// This maps Azure service resource providers to their corresponding Go SDK versions
+fn determine_sdk_version(resource_provider: &str) -> &'static str {
+    match resource_provider {
+        // Services with major version bumps
+        "Microsoft.DocumentDB" => "v3",  // CosmosDB uses v3
+        "Microsoft.ApiManagement" => "v3",  // API Management uses v3
+        "Microsoft.Batch" => "v3",  // Batch uses v3
+        "Microsoft.ContainerService" => "v6",  // Container Service uses v6
+        "Microsoft.Compute" => "v6",  // Compute uses v6
+        "Microsoft.DataFactory" => "v10",  // Data Factory uses v10
+        "Microsoft.AppContainers" => "v3",  // Container Apps uses v3
+        "Microsoft.ContainerInstance" => "v2",  // Container Instances uses v2
+        "Microsoft.ContainerRegistry" => "v1",  // Container Registry still v1
+        "Microsoft.Authorization" => "v2",  // Authorization uses v2
+        "Microsoft.DataProtection" => "v3",  // Data Protection uses v3
+        "Microsoft.Cdn" => "v2",  // CDN uses v2
+        "Microsoft.Communication" => "v2",  // Communication uses v2
+        "Microsoft.AppConfiguration" => "v2",  // App Configuration uses v2
+        "Microsoft.ApplicationInsights" => "v1",  // Application Insights still v1
+        "Microsoft.AzureStackHCI" => "v2",  // Azure Stack HCI uses v2
+        "Microsoft.Avs" => "v2",  // Azure VMware Solution uses v2
+        "Microsoft.DataBox" => "v2",  // Data Box uses v2
+        "Microsoft.BillingBenefits" => "v2",  // Billing Benefits uses v2
+        "Microsoft.AppService" => "v4",  // App Service uses v4
+        
+        // Services without major version bumps (use no version suffix)
+        "Microsoft.Storage" => "",  // Storage doesn't have version suffix
+        "Microsoft.KeyVault" => "",  // Key Vault doesn't have version suffix
+        "Microsoft.Network" => "",  // Network typically doesn't have version suffix
+        "Microsoft.Resources" => "",  // Resources doesn't have version suffix
+        "Microsoft.ManagedIdentity" => "",  // Managed Identity doesn't have version suffix
+        "Microsoft.Insights" => "",  // Insights doesn't have version suffix
+        "Microsoft.OperationalInsights" => "",  // Operational Insights doesn't have version suffix
+        
+        // Default case for unknown services - assume no version suffix
+        _ => "",
+    }
+}
+
 fn generate_json_and_go(spec_file: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Extract resource provider from spec file path
     // e.g., "../azure-rest-api-specs/specification/cosmos-db/resource-manager/Microsoft.DocumentDB/stable/2024-08-15/cosmos-db.json"
@@ -83,9 +123,7 @@ fn generate_json_and_go(spec_file: &str) -> Result<(), Box<dyn std::error::Error
     Ok(())
 }
 
-fn main() {
-    // let target = "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts";
-
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let targets = vec![
         ("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/listKeys", "2024-01-01"),
         ("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/cassandraKeyspaces/{keyspaceName}/tables/{tableName}/throughputSettings/default", "2024-08-15"),
@@ -95,50 +133,59 @@ fn main() {
         println!("\n--- Processing target: {} with API version: {} ---", target, api_version);
         
         // First, find the spec file for this target
-        match spec_finder(api_version, target) {
-            Ok(specs) => {
-                if let Some(spec_file) = specs.first() {
-                    println!("Found spec file: {}", spec_file);
-                    
-                    // Generate JSON and Go code from the found spec file
-                    match generate_json_and_go(spec_file) {
-                        Ok(()) => {
-                            println!("Successfully generated JSON and Go code");
-                            
-                            // Extract resource provider to determine the JSON file path
-                            let path_parts: Vec<&str> = spec_file.split('/').collect();
-                            if let Some(resource_provider) = path_parts.iter().find(|part| part.starts_with("Microsoft.")) {
-                                let folder_name = resource_provider_to_folder_name(resource_provider);
-                                let json_file_path = format!("./json/{}/openapi-document.json", folder_name);
-                                
-                                println!("Creating parser for: {}", json_file_path);
-                                
-                                // Create parser from the generated JSON file
-                                let parser = Parser::new(&json_file_path);
-                                let ex = dependency_example(parser, target);
-                                let package_version = "v3";
-                                
-                                let root_step = generate_steps(&ex, &package_version);
-                                
-                                // Create unique output filename based on resource provider
-                                let output_filename = format!("crawler_output_{}.yaml", folder_name);
-                                println!("Writing crawler steps to: {}", output_filename);
-                                
-                                match write_step_tree_and_steps_to_file(root_step, &output_filename) {
-                                    Ok(()) => println!("Successfully wrote crawler file: {}", output_filename),
-                                    Err(e) => eprintln!("Error writing crawler file {}: {}", output_filename, e),
-                                }
-                            } else {
-                                eprintln!("Could not extract resource provider from spec file path: {}", spec_file);
-                            }
-                        }
-                        Err(e) => eprintln!("Error generating code: {}", e),
-                    }
-                } else {
-                    println!("No spec files found for target: {} with API version: {}", target, api_version);
-                }
-            }
-            Err(e) => eprintln!("Error finding spec for target {}: {}", target, e),
-        }
+        let specs = spec_finder(api_version, target)
+            .map_err(|e| format!("Failed to find spec for target '{}' with API version '{}': {}", target, api_version, e))?;
+        
+        let spec_file = specs.first()
+            .ok_or_else(|| format!("No spec files found for target: {} with API version: {}", target, api_version))?;
+        
+        println!("Found spec file: {}", spec_file);
+        
+        // Generate JSON and Go code from the found spec file
+        generate_json_and_go(spec_file)
+            .map_err(|e| format!("Failed to generate JSON and Go code for spec file '{}': {}", spec_file, e))?;
+        println!("Successfully generated JSON and Go code");
+        
+        // Extract resource provider to determine the JSON file path
+        let path_parts: Vec<&str> = spec_file.split('/').collect();
+        let resource_provider = path_parts.iter()
+            .find(|part| part.starts_with("Microsoft."))
+            .ok_or_else(|| format!("Could not extract resource provider from spec file path: {}", spec_file))?;
+        
+        let folder_name = resource_provider_to_folder_name(resource_provider);
+        let json_file_path = format!("./json/{}/openapi-document.json", folder_name);
+        
+        println!("Creating parser for: {}", json_file_path);
+        
+        // Create parser from the generated JSON file
+        let parser = Parser::new(&json_file_path);
+        let ex = dependency_example(parser, target);
+        
+        // Determine SDK version based on the resource provider
+        let sdk_version = determine_sdk_version(resource_provider);
+        println!("Determined SDK version for {}: {}", resource_provider, if sdk_version.is_empty() { "no version suffix" } else { sdk_version });
+        
+        let root_step = generate_steps(&ex, sdk_version);
+        
+        // Create unique output filename based on resource provider and include version in directory structure
+        let version_dir = if sdk_version.is_empty() { 
+            folder_name.clone() 
+        } else { 
+            format!("{}/{}", folder_name, sdk_version) 
+        };
+        
+        // Ensure the specs directory structure exists
+        let specs_dir = format!("./specs/{}", version_dir);
+        fs::create_dir_all(&specs_dir)
+            .map_err(|e| format!("Failed to create specs directory '{}': {}", specs_dir, e))?;
+        
+        let output_filename = format!("{}/crawler.yaml", specs_dir);
+        println!("Writing crawler steps to: {}", output_filename);
+        
+        write_step_tree_and_steps_to_file(root_step, &output_filename)
+            .map_err(|e| format!("Failed to write crawler file '{}': {}", output_filename, e))?;
+        println!("Successfully wrote crawler file: {}", output_filename);
     }
+    
+    Ok(())
 }
