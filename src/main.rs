@@ -24,41 +24,41 @@ fn resource_provider_to_folder_name(resource_provider: &str) -> String {
 
 /// Determine the SDK version based on the resource provider
 /// This maps Azure service resource providers to their corresponding Go SDK versions
-fn determine_sdk_version(resource_provider: &str) -> &'static str {
+fn determine_sdk_version(resource_provider: &str) -> Option<&'static str> {
     match resource_provider {
         // Services with major version bumps
-        "Microsoft.DocumentDB" => "v3",  // CosmosDB uses v3
-        "Microsoft.ApiManagement" => "v3",  // API Management uses v3
-        "Microsoft.Batch" => "v3",  // Batch uses v3
-        "Microsoft.ContainerService" => "v6",  // Container Service uses v6
-        "Microsoft.Compute" => "v6",  // Compute uses v6
-        "Microsoft.DataFactory" => "v10",  // Data Factory uses v10
-        "Microsoft.AppContainers" => "v3",  // Container Apps uses v3
-        "Microsoft.ContainerInstance" => "v2",  // Container Instances uses v2
-        "Microsoft.ContainerRegistry" => "v1",  // Container Registry still v1
-        "Microsoft.Authorization" => "v2",  // Authorization uses v2
-        "Microsoft.DataProtection" => "v3",  // Data Protection uses v3
-        "Microsoft.Cdn" => "v2",  // CDN uses v2
-        "Microsoft.Communication" => "v2",  // Communication uses v2
-        "Microsoft.AppConfiguration" => "v2",  // App Configuration uses v2
-        "Microsoft.ApplicationInsights" => "v1",  // Application Insights still v1
-        "Microsoft.AzureStackHCI" => "v2",  // Azure Stack HCI uses v2
-        "Microsoft.Avs" => "v2",  // Azure VMware Solution uses v2
-        "Microsoft.DataBox" => "v2",  // Data Box uses v2
-        "Microsoft.BillingBenefits" => "v2",  // Billing Benefits uses v2
-        "Microsoft.AppService" => "v4",  // App Service uses v4
+        "Microsoft.DocumentDB" => Some("v3"),  // CosmosDB uses v3
+        "Microsoft.ApiManagement" => Some("v3"),  // API Management uses v3
+        "Microsoft.Batch" => Some("v3"),  // Batch uses v3
+        "Microsoft.ContainerService" => Some("v6"),  // Container Service uses v6
+        "Microsoft.Compute" => Some("v6"),  // Compute uses v6
+        "Microsoft.DataFactory" => Some("v10"),  // Data Factory uses v10
+        "Microsoft.AppContainers" => Some("v3"),  // Container Apps uses v3
+        "Microsoft.ContainerInstance" => Some("v2"),  // Container Instances uses v2
+        "Microsoft.Authorization" => Some("v2"),  // Authorization uses v2
+        "Microsoft.DataProtection" => Some("v3"),  // Data Protection uses v3
+        "Microsoft.Cdn" => Some("v2"),  // CDN uses v2
+        "Microsoft.Communication" => Some("v2"),  // Communication uses v2
+        "Microsoft.AppConfiguration" => Some("v2"),  // App Configuration uses v2
+        "Microsoft.ApplicationInsights" => Some("v1"),  // Application Insights still v1
+        "Microsoft.AzureStackHCI" => Some("v2"),  // Azure Stack HCI uses v2
+        "Microsoft.Avs" => Some("v2"),  // Azure VMware Solution uses v2
+        "Microsoft.DataBox" => Some("v2"),  // Data Box uses v2
+        "Microsoft.BillingBenefits" => Some("v2"),  // Billing Benefits uses v2
+        "Microsoft.AppService" => Some("v4"),  // App Service uses v4
         
         // Services without major version bumps (use no version suffix)
-        "Microsoft.Storage" => "",  // Storage doesn't have version suffix
-        "Microsoft.KeyVault" => "",  // Key Vault doesn't have version suffix
-        "Microsoft.Network" => "",  // Network typically doesn't have version suffix
-        "Microsoft.Resources" => "",  // Resources doesn't have version suffix
-        "Microsoft.ManagedIdentity" => "",  // Managed Identity doesn't have version suffix
-        "Microsoft.Insights" => "",  // Insights doesn't have version suffix
-        "Microsoft.OperationalInsights" => "",  // Operational Insights doesn't have version suffix
+        "Microsoft.Storage" => None,  // Storage doesn't have version suffix
+        "Microsoft.KeyVault" => None,  // Key Vault doesn't have version suffix
+        "Microsoft.Network" => None,  // Network typically doesn't have version suffix
+        "Microsoft.Resources" => None,  // Resources doesn't have version suffix
+        "Microsoft.ManagedIdentity" => None,  // Managed Identity doesn't have version suffix
+        "Microsoft.Insights" => None,  // Insights doesn't have version suffix
+        "Microsoft.OperationalInsights" => None,  // Operational Insights doesn't have version suffix
+        "Microsoft.ContainerRegistry" => None,  // Container Registry doesn't have version suffix
         
         // Default case for unknown services - assume no version suffix
-        _ => "",
+        _ => None,
     }
 }
 
@@ -163,15 +163,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         // Determine SDK version based on the resource provider
         let sdk_version = determine_sdk_version(resource_provider);
-        println!("Determined SDK version for {}: {}", resource_provider, if sdk_version.is_empty() { "no version suffix" } else { sdk_version });
+        println!("Determined SDK version for {}: {}", resource_provider, 
+            sdk_version.map_or("no version suffix".to_string(), |v| v.to_string()));
         
-        let root_step = generate_steps(&ex, sdk_version);
+        let root_step = generate_steps(&ex, sdk_version.unwrap_or(""));
         
         // Create unique output filename based on resource provider and include version in directory structure
-        let version_dir = if sdk_version.is_empty() { 
-            folder_name.clone() 
-        } else { 
-            format!("{}/{}", folder_name, sdk_version) 
+        let version_dir = match sdk_version {
+            Some(version) => format!("{}/{}", folder_name, version),
+            None => folder_name.clone(),
         };
         
         // Ensure the specs directory structure exists
