@@ -18,6 +18,6 @@ func main() {
 		if i > 4 {
 			break
 		}
-		fmt.Printf("%s %s (%s)\n", op.Method, op.Path, op.OperationID)
+		fmt.Printf("%s %s -> %s\n", op.Method, op.Path, op.ResponseType)
 	}
 }
