@@ -2,44 +2,47 @@
 kind: StepTree
 id: DatabaseAccountsCrawler
 executor:
-  default: {}
+    default: {}
 rootStep:
-  id: DatabaseAccountsListResult
-  children:
-  - id: DatabaseAccountsListResult
-  - id: DatabaseAccountsListResult
-  - id: DatabaseAccountGetResults
+    id: DatabaseAccountsListResult
     children:
-    - id: DatabaseAccountGetResults
-    - id: DatabaseAccountGetResults
-    - id: CassandraKeyspaceListResult
-      children:
-      - id: CassandraKeyspaceListResult
-      - id: CassandraKeyspaceListResult
-      - id: CassandraKeyspaceGetResults
-        children:
-        - id: CassandraKeyspaceGetResults
-        - id: CassandraKeyspaceGetResults
-        - id: CassandraTableListResult
+        - id: DatabaseAccountsListResult
+        - id: DatabaseAccountsListResult
+        - id: DatabaseAccountGetResults
           children:
-          - id: CassandraTableListResult
-          - id: CassandraTableListResult
-          - id: CassandraTableGetResults
-            children:
-            - id: CassandraTableGetResults
-            - id: CassandraTableGetResults
-            - id: ThroughputSettingsGetResults
+            - id: DatabaseAccountGetResults
+            - id: DatabaseAccountGetResults
+            - id: CassandraKeyspaceListResult
               children:
-              - id: ThroughputSettingsGetResults
-              - id: ThroughputSettingsGetResults
+                - id: CassandraKeyspaceListResult
+                - id: CassandraKeyspaceListResult
+                - id: CassandraKeyspaceGetResults
+                  children:
+                    - id: CassandraKeyspaceGetResults
+                    - id: CassandraKeyspaceGetResults
+                    - id: CassandraTableListResult
+                      children:
+                        - id: CassandraTableListResult
+                        - id: CassandraTableListResult
+                        - id: CassandraTableGetResults
+                          children:
+                            - id: CassandraTableGetResults
+                            - id: CassandraTableGetResults
+                            - id: ThroughputSettingsGetResults
+                              children:
+                                - id: ThroughputSettingsGetResults
+                                - id: ThroughputSettingsGetResults
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ChannelStep
 id: DatabaseAccountsListResult
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: DatabaseAccountsClient
-  method: NewListByResourceGroupPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: DatabaseAccountsClient
+    method: NewListByResourceGroupPager
+    args:
+        - resourceGroupName
+        - subscriptionId
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -54,9 +57,13 @@ id: DatabaseAccountsListResult
 kind: ChannelStep
 id: DatabaseAccountGetResults
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: DatabaseAccountsClient
-  method: NewGetPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: DatabaseAccountsClient
+    method: NewGetPager
+    args:
+        - subscriptionId
+        - resourceGroupName
+        - accountName
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -71,9 +78,13 @@ id: DatabaseAccountGetResults
 kind: ChannelStep
 id: CassandraKeyspaceListResult
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: CassandraResourcesClient
-  method: NewListCassandraKeyspacesPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: CassandraResourcesClient
+    method: NewListCassandraKeyspacesPager
+    args:
+        - subscriptionId
+        - resourceGroupName
+        - accountName
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -88,9 +99,14 @@ id: CassandraKeyspaceListResult
 kind: ChannelStep
 id: CassandraKeyspaceGetResults
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: CassandraResourcesClient
-  method: NewGetCassandraKeyspacePager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: CassandraResourcesClient
+    method: NewGetCassandraKeyspacePager
+    args:
+        - subscriptionId
+        - resourceGroupName
+        - accountName
+        - keyspaceName
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -105,9 +121,14 @@ id: CassandraKeyspaceGetResults
 kind: ChannelStep
 id: CassandraTableListResult
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: CassandraResourcesClient
-  method: NewListCassandraTablesPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: CassandraResourcesClient
+    method: NewListCassandraTablesPager
+    args:
+        - subscriptionId
+        - resourceGroupName
+        - accountName
+        - keyspaceName
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -122,9 +143,15 @@ id: CassandraTableListResult
 kind: ChannelStep
 id: CassandraTableGetResults
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: CassandraResourcesClient
-  method: NewGetCassandraTablePager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: CassandraResourcesClient
+    method: NewGetCassandraTablePager
+    args:
+        - subscriptionId
+        - resourceGroupName
+        - accountName
+        - keyspaceName
+        - tableName
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -139,9 +166,15 @@ id: CassandraTableGetResults
 kind: ChannelStep
 id: ThroughputSettingsGetResults
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
-  client: CassandraResourcesClient
-  method: NewGetCassandraTableThroughputPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/documentdb/armdocumentdb/v3
+    client: CassandraResourcesClient
+    method: NewGetCassandraTableThroughputPager
+    args:
+        - subscriptionId
+        - resourceGroupName
+        - accountName
+        - keyspaceName
+        - tableName
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep

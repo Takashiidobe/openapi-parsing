@@ -144,30 +144,31 @@ func (p *Parser) Ops() []Op {
 
 	return ops
 }
+
 func prefixes(path string) []string {
-        trimmed := strings.TrimPrefix(path, "/")
-        var acc string
-        var out []string
-        for _, seg := range strings.Split(trimmed, "/") {
-                acc += "/" + seg
-                out = append(out, acc)
-        }
-        return out
+	trimmed := strings.TrimPrefix(path, "/")
+	var acc string
+	var out []string
+	for _, seg := range strings.Split(trimmed, "/") {
+		acc += "/" + seg
+		out = append(out, acc)
+	}
+	return out
 }
 
 func FindDependencies(ops []Op, targetPath string) []Op {
-        prefixSet := map[string]struct{}{}
-        for _, p := range prefixes(targetPath) {
-                prefixSet[p] = struct{}{}
-        }
-        var deps []Op
-        for _, op := range ops {
-                if _, ok := prefixSet[op.Path]; ok {
-                        deps = append(deps, op)
-                }
-        }
-        sort.Slice(deps, func(i, j int) bool {
-                return len(deps[i].Path) < len(deps[j].Path)
-        })
-        return deps
+	prefixSet := map[string]struct{}{}
+	for _, p := range prefixes(targetPath) {
+		prefixSet[p] = struct{}{}
+	}
+	var deps []Op
+	for _, op := range ops {
+		if _, ok := prefixSet[op.Path]; ok {
+			deps = append(deps, op)
+		}
+	}
+	sort.Slice(deps, func(i, j int) bool {
+		return len(deps[i].Path) < len(deps[j].Path)
+	})
+	return deps
 }

@@ -2,24 +2,27 @@
 kind: StepTree
 id: StorageAccountCrawler
 executor:
-  default: {}
+    default: {}
 rootStep:
-  id: StorageAccountListResult
-  children:
-  - id: StorageAccountListResult
-  - id: StorageAccountListResult
-  - id: StorageAccount
+    id: StorageAccountListResult
     children:
-    - id: StorageAccount
-    - id: StorageAccount
+        - id: StorageAccountListResult
+        - id: StorageAccountListResult
+        - id: StorageAccount
+          children:
+            - id: StorageAccount
+            - id: StorageAccount
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ChannelStep
 id: StorageAccountListResult
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/
-  client: AccountsClient
-  method: NewListByResourceGroupPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/
+    client: AccountsClient
+    method: NewListByResourceGroupPager
+    args:
+        - resourceGroupName
+        - subscriptionId
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
@@ -34,9 +37,14 @@ id: StorageAccountListResult
 kind: ChannelStep
 id: StorageAccount
 clientMethod:
-  package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/
-  client: AccountsClient
-  method: NewGetPropertiesPager
+    package: github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage/
+    client: AccountsClient
+    method: NewGetPropertiesPager
+    args:
+        - resourceGroupName
+        - accountName
+        - subscriptionId
+        - $expand
 ---
 # yaml-language-server: $schema=../../../../../crawler-generator/crawler.schema.json
 kind: ResourceStep
